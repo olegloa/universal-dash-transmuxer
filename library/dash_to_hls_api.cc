@@ -377,13 +377,14 @@ bool DecryptSample(const Session* session, uint32_t sample_number,
              "");
     return false;
   }
-  if (session->default_iv_size_ != kIvSize - kIvCounterOffset) {
+  if (session->default_iv_size_ > kIvSize) {
     DASH_LOG("Bad IV.",
              "Unexpected default_iv_size_ size.",
              "");
     return false;
   }
   uint8_t iv[kIvSize];
+  memset(iv, 0, kIvSize);
   size_t size = saiz->get_sizes()[sample_number];
   if ((size != 8) &&
       ((size - 8 - sizeof(uint16_t)) % SaizContents::SaizRecordSize)) {
@@ -401,7 +402,6 @@ bool DecryptSample(const Session* session, uint32_t sample_number,
     return false;
   }
   memcpy(iv, mdat_data + *saio_position, session->default_iv_size_);
-  memset(iv + kIvCounterOffset, 0, kIvCounterSize);
   *saio_position += session->default_iv_size_;
   size_t saio_records = 1;
   if (size > 8) {
